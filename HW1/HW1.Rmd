@@ -13,29 +13,6 @@ Try executing this chunk by clicking the *Run* button within the chunk or by pla
 plot(cars)
 ```
 
-Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
-
-When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file).
-
-```{r}
-tmp <- 1+1
-```
-
-Is this just blank text? If not in a chunk... Interesting
-
-
-Problem 4
-
-Exercise 1 (p. 413)
-
-Problem 5
-
-Exercise 2 (p. 413)
-
-Problem 6
-
-Exercise 4 (p. 414)
-
 Problem 7
 
 Exercise 9 (p. 416)
@@ -92,6 +69,8 @@ the ratio of data points which lie at the 'wrong' side of the decision boundary,
 Complete Exercise 7 from section 2.4 of the textbook (p. 53).
 
 ```{r}
+library(fields)
+library(SpatialTools)
 Obs <- seq(1,6,length=6)
 X1 <- c(0,2,0,0,-1,1)
 X2 <- c(3,0,1,1,0,1)
@@ -105,33 +84,52 @@ df <- data.frame(Obs, X1, X2, X3, Y)
 coords_mat <- data.matrix(df[2:4])
 coords_mat
 ```
-
-```{r}
-# df$dist <- dist(rbind(x1, x2))
-zero_mat <- matrix(NA, nrow = 6, ncol = 3)
-# tmp <- dist(rbind(zero_mat, coords_mat))
-dist <- apply(coords_mat, 2, dist, zero_mat)
-```
-
-```{r}
-library(fields)
-library(SpatialTools)
-# dist(cbind(c(0,0,0)), cbind(c(1,1,1)))
-dist(rbind(c(0,1,3), c(0,0,0)))
-```
-
+a)
 ```{r}
 dist <- NULL
 for(i in 1:nrow(coords_mat)) {
     dist[i] <- dist(rbind(coords_mat[i,], c(0,0,0)))
 }
-dist
+df$dist <- dist
+
+df
+```
+
+b) If the only datapoint we care about is the one nearest neighbor, then the prediction will be Green (Obs 5)
+
+c) Obs 2, 5, 6 will be the closest 3 neighbors for [0,0,0], which corresponds with a Y of Red, Green and Red respectively; thus the prediction would be red.
+
+d)
+
+Problem 4: Exercise 1 (p. 413)
+a) K-Means Clustering: Prove equation 10.12
+b)
+
+Problem 5: Exercise 2 (p. 413)
+For given Dissimilarity matrix, 
+a) On the basis of this dissimilarity matrix, sketch the dendrogram that results from hierarchically clustering these four observa- tions using complete linkage. Be sure to indicate on the plot the height at which each fusion occurs, as well as the observations corresponding to each leaf in the dendrogram.
+
+```{r}
+dist_matrix <- as.dist(matrix(c(0, 0.3, 0.4, 0.7, 
+                     0.3, 0, 0.5, 0.8,
+                     0.4, 0.5, 0.0, 0.45,
+                     0.7, 0.8, 0.45, 0.0), nrow=4))
+plot(hclust(dist_matrix, method="complete"))
+```
+b)
+```{r}
+plot(hclust(dist_matrix, method="single"))
+```
+
+c) Cluster1: Observations 1 and 2; Cluster2: Observations 3 and 4
+d) Cluster1: Observations 1,2, and 3; Cluster2: Observation 4
+e) The following dendrogram swaps positions of the two clusters without changing the meaning
+```{r}
+plot(hclust(dist_matrix, method="complete"), labels=c(4,3,1,2))
 ```
 
 
-Problem 8
-
-Exercise 4 (p. 120)
+Problem 8: Exercise 4 (p. 120)
 
 4. I collect a set of data (n = 100 observations) containing a single predictor and a quantitative response. I then fit a linear regression model to the data, as well as a separate cubic regression, i.e. Y = β0 +β1X +β2X2 +β3X3 +ε.
 (a) Suppose that the true relationship between X and Y is linear, i.e. Y = β0 + β1X + ε. Consider the training residual sum of squares (RSS) for the linear regression, and also the training RSS for the cubic regression. Would we expect one to be lower than the other, would we expect them to be the same, or is there not enough information to tell? Justify your answer.
