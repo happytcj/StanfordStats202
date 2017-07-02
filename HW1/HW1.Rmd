@@ -5,26 +5,6 @@ output:
   latex_engine: xelatex
 ---
 
-This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
-
-Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
-
-```{r}
-plot(cars)
-```
-
-Problem 7
-
-Exercise 9 (p. 416)
-
-Problem 9
-
-Exercise 9 (p. 122). In parts (e) and (f), you need only try a few interactions and transformations.
-
-Problem 10
-
-Exercise 14 (p. 125)
-
 Problem 1: 
 Explain whether each scenario is a classification or regression prob- lem, and indicate whether we are most interested in inference or pre- diction. Finally, provide n and p.
 
@@ -129,7 +109,54 @@ plot(hclust(dist_matrix, method="complete"), labels=c(4,3,1,2))
 ```
 
 
-Problem 8: Exercise 4 (p. 120)
+Problem 6: Exercise 4 (p. 414)
+Suppose that for a particular data set, we perform hierarchical clus- tering using single linkage and using complete linkage. We obtain two dendrograms.
+(a) At a certain point on the single linkage dendrogram, the clus- ters {1,2,3} and {4,5} fuse. On the complete linkage dendro- gram, the clusters {1, 2, 3} and {4, 5} also fuse at a certain point. Which fusion will occur higher on the tree, or will they fuse at the same height, or is there not enough information to tell?
+
+This question requires more information to answer and is dependent on both the organization of information as well as the dissimilarity measure (euclidian distance, correlation etc). Complete linkage joins on maximal intercluster dissimilarity, while single linknage joins on minimal intercluster dissimilarity; were these to be equal, then the two clusters in question would fuse at the same height. Otherwise, a dendrogram formed with complete linkage would fuse them at a greater height than a dendrogram formed with single linkage. 
+
+(b) At a certain point on the single linkage dendrogram, the clusters {5} and {6} fuse. On the complete linkage dendrogram, the clus- ters {5} and {6} also fuse at a certain point. Which fusion will occur higher on the tree, or will they fuse at the same height, or is there not enough information to tell?
+They would fuse at the same height because the choice of complete vs single linkage operates on observations between two clusters instead of the clustering of two individual observations that are not yet clustered.  
+
+Problem 7: Exercise 9 (p. 416)
+```{r}
+data("USArrests")
+names(USArrests)
+dim(USArrests)
+class(USArrests)
+```
+
+a)
+```{r}
+cluster_USArrests <- hclust(dist(USArrests), method="complete")
+plot(cluster_USArrests)
+```
+
+b)
+```{r}
+cutree(cluster_USArrests, 3)
+```
+
+
+c)
+```{r}
+cluster_USArrests_scaled = hclust(dist(scale(USArrests)), method="complete")
+plot(cluster_USArrests_scaled)
+```
+
+d) Number of states in each cluster without scaling USArrests: 
+```{r}
+table(cutree(cluster_USArrests, 3))
+```
+
+Number of states in each cluster after scaling USArrests: 
+```{r}
+table(cutree(cluster_USArrests_scaled, 3))
+```
+
+The overall height and spread of the dendrogram was not dramatically altered after scaling the input dataset. The states that ended up in each 3 cluster did change. In general, scaling each variable vector to standardize variance makes sense. The variables in USArrests dataset have different units with different inherent variance. Units with a larger variance has a greater effect on euclidian distance, and thus have a greater influence on how clusters are formed. 
+
+**Problem 8**: Exercise 4 (p. 120)
 
 4. I collect a set of data (n = 100 observations) containing a single predictor and a quantitative response. I then fit a linear regression model to the data, as well as a separate cubic regression, i.e. Y = β0 +β1X +β2X2 +β3X3 +ε.
 (a) Suppose that the true relationship between X and Y is linear, i.e. Y = β0 + β1X + ε. Consider the training residual sum of squares (RSS) for the linear regression, and also the training RSS for the cubic regression. Would we expect one to be lower than the other, would we expect them to be the same, or is there not enough information to tell? Justify your answer.
@@ -142,9 +169,9 @@ The increased flexibility from polynomial regression will lead to a better fit t
 Since the true relationship is not known, there is not enough information to exactly tell whether test dataset RSS will be better with a polynomial fit; 
 
 
+**Problem 9**: Exercise 9 (p. 122). In parts (e) and (f), you need only try a few interactions and transformations.
 
-
-
+**Problem 10**: Exercise 14 (p. 125)
 
 
 
