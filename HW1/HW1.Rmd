@@ -5,6 +5,15 @@ output:
   latex_engine: xelatex
 ---
 
+Load necessary libraries
+```{r}
+library(fields)
+library(SpatialTools)
+library(ggplot2)
+library(GGally)
+```
+
+
 Problem 1: 
 Explain whether each scenario is a classification or regression prob- lem, and indicate whether we are most interested in inference or pre- diction. Finally, provide n and p.
 
@@ -49,8 +58,6 @@ the ratio of data points which lie at the 'wrong' side of the decision boundary,
 Complete Exercise 7 from section 2.4 of the textbook (p. 53).
 
 ```{r}
-library(fields)
-library(SpatialTools)
 Obs <- seq(1,6,length=6)
 X1 <- c(0,2,0,0,-1,1)
 X2 <- c(3,0,1,1,0,1)
@@ -170,17 +177,116 @@ Since the true relationship is not known, there is not enough information to exa
 
 
 **Problem 9**: Exercise 9 (p. 122). In parts (e) and (f), you need only try a few interactions and transformations.
+```{r}
+Auto = na.omit(read.csv("Auto.csv", na.strings="?")) #massage out question marks and lists with missing values
+Auto
+```
+
+a)
+```{r, fig.width=15, fig.height=7.5}
+pairs(Auto, main="Autos Dataset Scatterplot Matrix")
+```
+b) 
+```{r}
+cor(data.matrix(Auto[,-length(Auto)]))
+```
+
+c)
+```{r}
+df <- Auto[,-length(Auto)]
+# help(lm)
+model <- lm(mpg ~ ., data=df)
+summary(model)
+```
+
+c.i) The model does predict a relationship between the predictors and response; R^2 at 0.903 is high, expressing that the model fits training data well. The F-statistic is high (considering the number of observations is much larger than our number of predictors) and p value is very low, thus the null-hypothesis can be rejected. 
+
+c.ii) Based on their low p values (highlighted by the 2-3 stars next to each p-value), displacement, weight, year and origin appear to have a statistically significant relationship to the response
+
+c.iii) With each passing year, mpg increases by ~0.75 mpg
+
+d)
+```{r, fig.width=10, fig.height=10}
+par(mfrow=c(2,2)) 
+plot(model)
+par(mfrow=c(1,1)) # Change back to 1 x 1
+```
+The residuals vs fitted plot can be used to diagnose non-linear behavior in residuals. There appears to be a parabolic shape to the residuals curves, where non-linear relationship that was not explained by the model was left out in the residuals. 
+The Normal Q-Q plot shows if residuals are normally distributed; there is some deviation in the points that have gained labels: 326, 327 and 323
+The Scale-Location plot shows that the residuals are randomly spread and homoscedastic
+The residuals vs leverage plot shows that residual 14 has leverage, but all points are within cook's distance, meaning there aren't any particular residual that is highly influential to regression results
+
+e) with some car knowledge that engine performance depends on an interaction of number of cylinders and total displacement, I believed it would be interesting to see whether this can influence our model: 
+
+```{r}
+model_interaction <- lm(mpg~cylinders*displacement, data=df)
+summary(model_interaction)
+```
+Cylinders, displacement as well as their interaction proved to be very statistically significant in predicting mpg, which makes sense from a mechanical standpoint; more cylinders should allow for a more stable engine and higher RPMs, coupled with greater displacement fuel use can increase very quickly
+
+Next I wondered whether there were strong interactions between year and origin, i.e. whether some countries of origin made great improvements overtime or vice veresa
+```{r}
+model_interaction <- lm(mpg~year*origin, data=df)
+summary(model_interaction)
+```
+However, here the significance is rather weak
+
+Finally, knowing that acceleration can have a very high penalty on fuel usage, and that horsepower is a function of RPM: 
+```{r}
+model_interaction <- lm(mpg~acceleration*horsepower, data=df)
+summary(model_interaction)
+```
+It turns out that a fast moving, high revving powerhouse consumes a ton of fuel: the interaction is statistically significacnt.
+
+f) 
+```{r}
+model_transform <- lm(log(mpg)~cylinders+exp(displacement)+log(horsepower)+log(weight)+log(acceleration)+I(year^2)+origin, data=Auto)
+summary(model_transform)
+```
+Using a log transform of mpg proved a much better fit on its own; making additional transforms on predictor  vectors, especially exp() on displacement and log() on horsepower, weight and acceleration further improved adjusted R^2 and reduced RSE
+
+And now looking at the diagnostic plots: 
+```{r, , fig.width=10, fig.height=10}
+par(mfrow=c(2,2)) 
+plot(model_transform)
+par(mfrow=c(1,1)) # Change back to 1 x 1
+```
+
+We see that with the aforementioned transforms on our response and predictor variables, the non-linear patterns on residuals greatly decreased (on the residuals vs fitted plot). 
+Deviation of residuals from the straight line on Normal Q-Q plot also decreased, signifying more normally distributed residuals
 
 **Problem 10**: Exercise 14 (p. 125)
+a) 
+```{r}
+set.seed(1)
+x1 = runif(100)
+x2 = 0.5 * x1 + rnorm(100)/10
+y = 2 + 2*x1 + 0.3*x2 + rnorm(100)
+```
+
+Form of the model and regression coefficients
 
 
+![problem 10a](./10a)
 
 
+Per 3.36 in the book, the form has a quadratic shape but model is still linear
 
 
+b)
+```{r}
+print(cor(x1, x2))
+model = lm(x2~x1)
+plot(x1, x2)
+abline(model, col='blue')
+```
 
-
-
+c) 
+```{r}
+model = lm(y~x1+x2)
+coef(model)
+summary(model)
+```
 
 
 
