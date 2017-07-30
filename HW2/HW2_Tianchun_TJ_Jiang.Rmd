@@ -1,0 +1,397 @@
+---
+title: "HW2 Tianchun Jiang"
+output:
+ pdf_document:
+  latex_engine: xelatex
+---
+
+## SUID ending in 0710
+tcjiang108@gmail.com
+
+Load necessary libraries
+
+```{r, include=FALSE}
+library(ISLR)
+library(car)
+library(boot)
+library(MASS)
+```
+
+## Problem 1
+
+Chapter 4, Exercise 4 (p. 168).
+
+### a) 
+For the cases where 0.5 < X < 0.95, the average will be 10%. Otherwise, we form an integral as such: 
+
+$$\int_{0}^{0.05} 100x + 5 dx$$
+Which equals 0.375, multiplied by 2 for two intervals: when x < 0.05 and when x > 0.95
+Thus on average our prediction is (0.1 * 0.9 + 0.00375 * 2) * 100 = 9.75%
+
+### b) 
+0.0975^2 * 100 = 0.95%
+
+### c) 
+0.0975^100 * 100 = (7.95 e-100)%
+
+### d)
+Our results show that as dimensionality increases, the number of datapoints that are close in all dimensions to the response variable decreases exponentially. 
+
+### e)
+The length will be 0.1^(1/p)
+e.g. for p=1, l = 0.1^(1) = 0.1
+for p=100, l = 0.1^(1/100)
+
+Problem 2
+
+Chapter 4, Exercise 6 (p. 170).
+
+### a)
+$$
+\frac{e^{B_0+B1X_1+...+B_pX_p}}{1+e^{B_0+B_1X_1+...+B_pX_p}}\\
+\frac{e^{-6+0.05*40+3.5}}{1+e^{-6+0.05*40+3.5}}\\
+=0.3775
+$$
+
+### b)
+$$0.5 = \frac{e^{-6+0.05*X_1+3.5}}{1+e^{-6+0.05*X_1+3.5}}\\$$
+$$0.5*({1+e^{0.05*X_1-2.5}}) = e^{0.05*X_1-2.5}\\\newline$$
+$$0.5 = 0.5e^{0.05*X_1-2.5}\\$$
+$$log(1) = log(e^{0.05*X_1-2.5})\\$$
+$$0 = 0.05*X_1 - 2.5\\$$
+$$X_1 = 2.5/0.05 = 50 hours\\$$
+
+
+The student in part a) needs to study 50 hours to have a 50% chance of earning an A
+
+## Problem 3
+
+Chapter 4, Exercise 8 (p. 170).
+
+With K=1, the decision boundary is highly flexible. In general, as flexibility increases, the training error will decline but the testing error will increase. A KNN classifier with K=1 has a training error of 0, as every observation will simply cluster with itself. This means that the test error was 36%. 
+
+**Thus, I would choose the 30% test error logistic regression classifier.**
+
+
+## Problem 4
+Chapter 4, Exercise 10 (p. 171). In part (i), please be concise; only describe and provide the output of your best prediction.
+Updated: only a, b, c, d are required
+
+### a)
+
+Quick look at correlation matrix
+
+```{r, fig.width=10, fig.height=10, warning=FALSE}
+names(Weekly)
+dim(Weekly)
+summary(Weekly)
+scatterplotMatrix(Weekly, main="Weekly Dataset Scatterplot Matrix")
+```
+
+
+```{r}
+Weekly_numeric <- Weekly[, sapply(Weekly, is.numeric)]
+cor(Weekly_numeric)
+```
+
+Besides the 'year' and 'volume' features, there does not appear to be significant correlation between variables. In other words, volume of shares traded weekly increased between 1990 and 2010.
+
+```{r}
+m1<-lm(Year~Volume, data=Weekly)
+summary(m1)
+```
+
+
+### b) 
+
+```{r}
+glm.fit <- glm(Direction~Lag1+Lag2+Lag3+Lag4+Lag5+Volume , data=Weekly ,family=binomial)
+summary(glm.fit)
+```
+Lag 2 appears to be statistically significant with a p value of 0.02, pointing to an association between Lag2 and direction
+
+### c)
+
+```{r}
+glm.probs <- predict(glm.fit, type="response")
+contrasts(Weekly$Direction)
+glm.pred=rep("Down", 1089)
+glm.pred[glm.probs > 0.5] = "Up"
+table(glm.pred, Weekly$Direction)
+mean(glm.pred == Weekly$Direction)
+```
+
+The confusion matrix tells us that the model correctly predicted the weekly market movement 56.1% of the time. Since we trained and tested the model using the same 1089 observations, 100-56.1=43.9 is the training error rate. Training error rate tends to underestimate test error rate. 
+
+### d) 
+```{r}
+train <- (Weekly$Year < 2008)
+Weekly.2008 <- Weekly[!train,]
+dim(Weekly.2008)
+Direction.2008 <- Weekly$Direction[!train]
+glm.fit <- glm(Direction~Lag1+Lag2+Lag3+Lag4+Lag5+Volume, data=Weekly ,family=binomial,subset=train)
+glm.probs <- predict(glm.fit, Weekly.2008, type="response")
+glm.pred=rep("Down",156)
+glm.pred[glm.probs > 0.5] = "Up"
+table(glm.pred, Direction.2008)
+train_err <- mean(glm.pred==Direction.2008)
+test_err <- 1-train_err
+```
+
+```{r}
+sprintf('training error: %0.4f', train_err)
+sprintf('test error: %0.4f', test_err)
+```
+
+The fraction of correct predictions in our test set of observations between 2009 and 2010 was 48.72%, worse than random guessing.
+
+Problem 5
+
+Chapter 5, Exercise 5 (p. 198).
+
+### a)
+```{r}
+set.seed(1) # seed interpretor's RNG for reproducibility of results
+glm.fit <- glm(default~income+balance, data=Default, family=binomial)
+summary(glm.fit)
+```
+
+### b)
+```{r}
+# i. split data into training and validation set
+train <- sample(dim(Default)[1], dim(Default)[1]/2)
+
+# ii fit multiple logistic regression with only training set
+glm.fit <- glm(default~income+balance, data=Default, family=binomial, subset=train)
+
+# iii obtain prediction of default status
+glm.probs <- predict(glm.fit, newdata=Default[-train, ], type="response")
+glm.pred <- rep("No", length(glm.probs))
+glm.pred[glm.probs > 0.5] <- "Yes"
+
+# iv
+sprintf("test error rate with validation set approach is %0.3f%%", 
+        100*mean(glm.pred != Default[-train,]$default))
+```
+
+### c)
+```{r}
+for(i in 1:3) {
+  train <- sample(dim(Default)[1], dim(Default)[1]/2)
+  glm.fit <- glm(default~income+balance, data=Default, family=binomial, subset=train)
+  glm.probs <- predict(glm.fit, newdata=Default[-train, ], type="response")
+  glm.pred <- rep("No", length(glm.probs))
+  glm.pred[glm.probs > 0.5] <- "Yes"
+  tmpstr <- sprintf("run %d, test error rate with validation set approach is %0.3f%%", i
+                    , 100*mean(glm.pred != Default[-train,]$default))
+  print(tmpstr)
+}
+```
+
+Here we see that there is some variance in test error rate depending on validation set, but average is around 2.6%
+
+### d)
+```{r}
+train <- sample(dim(Default)[1], dim(Default)[1]/2)
+glm.fit <- glm(default~student+income+balance, data=Default, family=binomial, subset=train)
+glm.probs <- predict(glm.fit, newdata=Default[-train, ], type="response")
+glm.pred <- rep("No", length(glm.probs))
+glm.pred[glm.probs > 0.5] <- "Yes"
+tmpstr <- sprintf("test error rate with dummy student variable is %0.3f%%", i, 
+                  100*mean(glm.pred != Default[-train,]$default))
+print(tmpstr)
+```
+
+We've seen that there is some variance in the test error rate baesd on how the train set/validation set is sampled. However, the test error rate with a dummy student variable included is perhaps slightly lower. 
+
+## Problem 6
+
+Chapter 5, Exercise 6 (p. 199)
+
+### a)
+
+```{r}
+set.seed(1) # seed interpretor's RNG for reproducibility of results
+glm.fit <- glm(default~income+balance, data=Default, family=binomial)
+summary(glm.fit)
+```
+
+### b)
+
+```{r}
+boot.fn <- function(data,index) {
+  return(coef(glm(default~income+balance,data=data,family="binomial",subset=index)))
+}
+```
+
+### c)
+
+```{r}
+boot(Default, boot.fn, 1000)
+```
+
+
+### d)
+
+The results between bootstrap method and logistic regression are not significantly different
+
+
+## Problem 7
+
+Chapter 5, Exercise 8 (p. 200)
+
+### a) 
+
+```{r}
+set.seed(1)
+y <- rnorm(100)
+x <- rnorm(100)
+y <- x - 2*x^2 + rnorm(100)
+```
+
+n is 100
+p is 2, x and x squared
+
+$$Y = X - 2X^2 + ϵ$$
+
+### b)
+```{r}
+plot(x, y)
+```
+
+The relationship between y and x appears to be parabolic
+
+
+### c)
+
+```{r}
+set.seed(1)
+Data <- data.frame(x, y)
+
+# i.
+glm.fit.1 <- glm(y ~ x)
+cv.glm(Data, glm.fit.1)$delta[1]
+```
+
+```{r}
+# ii. 
+glm.fit.2 = glm(y ~ poly(x, 2))
+cv.glm(Data, glm.fit.2)$delta[1]
+```
+
+```{r}
+# iii. 
+glm.fit.3 = glm(y ~ poly(x, 3))
+cv.glm(Data, glm.fit.3)$delta[1]
+```
+
+```{r}
+# iv.
+glm.fit.4 = glm(y ~ poly(x, 4))
+cv.glm(Data, glm.fit.4)$delta[1]
+```
+
+### d)
+
+```{r}
+set.seed(2)
+Data <- data.frame(x, y)
+glm.fit.1 <- glm(y ~ x)
+cv.glm(Data, glm.fit.1)$delta[1]
+glm.fit.2 = glm(y ~ poly(x, 2))
+cv.glm(Data, glm.fit.2)$delta[1]
+glm.fit.3 = glm(y ~ poly(x, 3))
+cv.glm(Data, glm.fit.3)$delta[1]
+glm.fit.4 = glm(y ~ poly(x, 4))
+cv.glm(Data, glm.fit.4)$delta[1]
+```
+
+Results using a different random seed are identical. This makes sence because the above methodology does not have any probabilistic component of validation set generation. 
+
+### e)
+
+The second order polyfit yielded the smallest LOOCV error. This is what I expected due to the parabolic shape plotted in b)
+
+### f)
+
+```{r}
+summary(glm.fit.4)
+```
+
+Based on p-values, the second order term is very significant, which confirms my statement in e).
+
+## Problem 8
+
+Chapter 5, Exercise 9 (p. 201)
+
+### a)
+```{r}
+sample_u <- mean(Boston$medv)
+sample_u
+```
+
+### b)
+```{r}
+sample_sde <- sd(Boston$medv) / sqrt(dim(Boston)[1])
+sample_sde
+```
+Roughly speaking, the standard error tells us the average amount this estimated mean differs from the actual mean. 'medv' is the median value of owner occupied homes in thousands of dollars. This means that on average the sample mean differs from the population mean by about $408.86. This is a relatively small error compared to the true mean. 
+
+### c)
+```{r}
+set.seed(1)
+boot.fn <- function(data, idx) {
+  ret <- mean(data[idx])
+  return (ret)
+}
+boot(Boston$medv, boot.fn, 1000)
+```
+
+The result we got here using bootstrap is very close to result from b)
+
+### d)
+```{r}
+l = sample_u - 2*sample_sde
+u = sample_u + 2*sample_sde
+l
+u
+t.test(Boston$medv)
+```
+
+Results calculated are very similar to those we get from t.test()
+
+### e)
+```{r}
+med <- median(Boston$medv)
+med
+```
+
+
+### f)
+```{r}
+boot.fn <- function(data, idx) {
+  ret = median(data[idx])
+  return (ret)
+}
+boot(Boston$medv, boot.fn, 1000)
+```
+The std error for median is small compared to the median value. Bootstrap was able to accurately calculate the median. 
+
+### g)
+```{r}
+mu_hat_0.1 <- quantile(Boston$medv, 0.1)
+mu_hat_0.1
+```
+
+
+### h)
+```{r}
+boot.fn <- function(data, idx){
+  ret = quantile(data[idx], c(0.1))
+  return (ret)
+}
+  
+boot(Boston$medv, boot.fn, 1000)
+```
+
+The std error for tenth percentile is small compared to the actual value. 

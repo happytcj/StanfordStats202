@@ -1,0 +1,450 @@
+---
+title: "HW1 Tianchun Jiang"
+output:
+ pdf_document:
+  latex_engine: xelatex
+---
+
+Load necessary libraries
+```{r}
+library(fields)
+library(SpatialTools)
+library(ggplot2)
+```
+
+\pagebreak
+
+## Problem 1
+
+Chapter 2 problem 2
+
+### a) 
+
+Regression, inference, n = 500, p = 3
+
+### b) 
+
+Classification, prediction, n = 20, p = 13
+
+### c) 
+
+Regression, prediction, p = 3, n = 52
+
+\pagebreak
+
+## Problem 2
+
+Exercise 3 from section 2.4 (p. 52)
+
+### a) 
+
+![Problem 2a Sketch](./2a)
+
+### b) 
+
+Irreducible error cannot be predicted using the input predictor variables. No matter how well the model fits it will not be attenuated. This term could be due to unmeasured quantities or unmeasurable variation. 
+Training error will always decrease as the model becomes more flexible, but will eventually lead to detriment in generalizability
+Test error curve goes from an underfit model to a minima where the model fit well with low variance and low bias, but as flexibility increases more the model becomes overfit
+Variance will increase as model becomes more flexible as overfitting becomes an issue and small changes in predictor variables leads to potentially large changes in prediced response 
+Bias will decrease as model becomes more flexible but will reach an asymptote (diminishing returns) at some point depending on the true model coefficients
+
+## Problem 3
+
+Complete Exercise 7 from section 2.4 of the textbook (p. 53).
+
+```{r}
+Obs <- seq(1,6,length=6)
+X1 <- c(0,2,0,0,-1,1)
+X2 <- c(3,0,1,1,0,1)
+X3 <- c(0,0,3,2,1,1)
+Y <- c('Red', 'Red', 'Red', 'Green', 'Green', 'Red')
+df <- data.frame(Obs, X1, X2, X3, Y)
+(df)
+```
+
+```{r}
+coords_mat <- data.matrix(df[2:4])
+coords_mat
+```
+
+### a)
+
+```{r}
+dist <- NULL
+for(i in 1:nrow(coords_mat)) {
+    dist[i] <- dist(rbind(coords_mat[i,], c(0,0,0)))
+}
+df$dist <- dist
+
+df
+```
+
+### b)
+
+If the only datapoint we care about is the one nearest neighbor, then the prediction will be Green (Obs 5)
+
+### c)
+
+Obs 2, 5, 6 are the closest 3 neighbors for [0,0,0], which corresponds with a Y of Red, Green and Red respectively; thus the prediction would be red.
+
+### d)
+
+If the actual Bayes decision boundary is highly non-linear, we would want a small k allowing a more flexible decision boundary. This corresponds to a classifier with low bias but high variance. 
+
+
+\pagebreak
+
+## Problem 4: Exercise 1 (p. 413)
+
+### a) 
+
+![Proof of 10.12](./4a)
+
+### b)
+
+On the basis of this identity, argue that the K-means clustering algorithm (Algorithm 10.1) decreases the objective (10.11) at each iteration.
+
+The left hand term (10.10) defines the within-cluster variation using squared Euclidian distance . In k-means clustering, we want to partition the observations into k clusters such that the total within-cluster variation summed over all clusters is minimized. 10.12 shows that as we minimize 10.10 we also minimize the within-cluster variation for each cluster. 
+
+## Problem 5
+
+Exercise 2 (p. 413)
+
+
+### a)
+
+On the basis of this dissimilarity matrix, sketch the dendrogram that results from hierarchically clustering these four observa- tions using complete linkage. Be sure to indicate on the plot the height at which each fusion occurs, as well as the observations corresponding to each leaf in the dendrogram.
+
+
+```{r}
+data <-c (0, 0.3, 0.4, 0.7, 0.3, 0, 0.5, 0.8, 0.4, 0.5, 0.0, 0.45, 0.7, 0.8, 0.45, 0.0)
+data_mat <- matrix(data, nrow=4)
+dist_matrix <- as.dist(data_mat)
+plot(hclust(dist_matrix, method="complete"))
+```
+
+### b)
+
+```{r}
+plot(hclust(dist_matrix, method="single"))
+```
+
+### c)
+
+Cluster1: Observations 1 and 2; Cluster2: Observations 3 and 4
+
+### d)
+
+Cluster1: Observations 1,2, and 3; Cluster2: Observation 4
+
+### e)
+
+The following dendrogram swaps positions of the two clusters without changing the meaning
+
+```{r}
+plot(hclust(dist_matrix, method="complete"), labels=c(4,3,1,2))
+```
+
+
+## Problem 6
+
+Exercise 4 (p. 414)
+
+Suppose that for a particular data set, we perform hierarchical clus- tering using single linkage and using complete linkage. We obtain two dendrograms.
+
+### a)
+
+At a certain point on the single linkage dendrogram, the clus- ters {1,2,3} and {4,5} fuse. On the complete linkage dendro- gram, the clusters {1, 2, 3} and {4, 5} also fuse at a certain point. Which fusion will occur higher on the tree, or will they fuse at the same height, or is there not enough information to tell?
+
+
+This question requires more information to answer and is dependent on both the organization of information as well as the dissimilarity measure (euclidian distance, correlation etc). Complete linkage joins on maximal intercluster dissimilarity, while single linknage joins on minimal intercluster dissimilarity; were these to be equal, then the two clusters in question would fuse at the same height. Otherwise, a dendrogram formed with complete linkage would fuse them at a greater height than a dendrogram formed with single linkage. 
+
+
+### b)
+
+At a certain point on the single linkage dendrogram, the clusters {5} and {6} fuse. On the complete linkage dendrogram, the clus- ters {5} and {6} also fuse at a certain point. Which fusion will occur higher on the tree, or will they fuse at the same height, or is there not enough information to tell?
+
+They would fuse at the same height because the choice of complete vs single linkage operates on observations between two clusters instead of the clustering of two individual observations that are not yet clustered.  
+
+
+## Problem 7
+
+Exercise 9 (p. 416)
+
+```{r}
+data("USArrests")
+names(USArrests)
+dim(USArrests)
+class(USArrests)
+```
+
+### a)
+
+```{r}
+cluster_USArrests <- hclust(dist(USArrests), method="complete")
+plot(cluster_USArrests)
+```
+
+### b)
+
+```{r}
+cutree(cluster_USArrests, 3)
+```
+
+
+### c)
+
+```{r}
+cluster_USArrests_scaled = hclust(dist(scale(USArrests)), method="complete")
+plot(cluster_USArrests_scaled)
+```
+
+### d)
+
+Number of states in each cluster without scaling USArrests:
+
+```{r}
+table(cutree(cluster_USArrests, 3))
+```
+
+Number of states in each cluster after scaling USArrests: 
+
+```{r}
+table(cutree(cluster_USArrests_scaled, 3))
+```
+
+The overall height and spread of the dendrogram was not dramatically altered after scaling the input dataset. The states that ended up in each 3 cluster did change. In general, scaling each variable vector to standardize variance makes sense. The variables in USArrests dataset have different units with different inherent variance. Units with a larger variance has a greater effect on euclidian distance, and thus have a greater influence on how clusters are formed. 
+
+## Problem 8
+
+Exercise 4 (p. 120)
+
+I collect a set of data (n = 100 observations) containing a single predictor and a quantitative response. I then fit a linear regression model to the data, as well as a separate cubic regression, i.e. Y = β0 +β1X +β2X2 +β3X3 +ε.
+
+### a) 
+
+Suppose that the true relationship between X and Y is linear, i.e. Y = β0 + β1X + ε. Consider the training residual sum of squares (RSS) for the linear regression, and also the training RSS for the cubic regression. Would we expect one to be lower than the other, would we expect them to be the same, or is there not enough information to tell? Justify your answer.
+
+Adding more variables to the least squares equations always improves the fit to the training data; thus, the RSS to training data should decrease
+
+### b) 
+
+Answer (a) using test rather than training RSS.
+
+test RSS should decrease due to the overfitting and failing to generalize overfit model to test dataset 
+
+### c)
+
+Suppose that the truerelationshipbetweenXandYisnotlinear, but we don’t know how far it is from linear. Consider the training RSS for the linear regression, and also the training RSS for the cubic regression. Would we expect one to be lower than the other, would we expect them to be the same, or is there not enough information to tell? Justify your answer.
+
+The increased flexibility from polynomial regression will lead to a better fit to training data over a linear regression. 
+
+### d)
+
+Answer (c) using test rather than training RSS.
+
+Since the true relationship is not known, there is not enough information to exactly tell whether test dataset RSS will be better with a polynomial fit
+
+
+## Problem 9
+
+Exercise 9 (p. 122). In parts (e) and (f), you need only try a few interactions and transformations.
+```{r}
+Auto = na.omit(read.csv("Auto.csv", na.strings="?")) #massage out question marks and lists with missing values
+Auto
+```
+
+### a)
+
+```{r, fig.width=15, fig.height=7.5}
+pairs(Auto, main="Autos Dataset Scatterplot Matrix")
+```
+### b) 
+
+```{r}
+cor(data.matrix(Auto[,-length(Auto)]))
+```
+
+### c)
+
+```{r}
+df <- Auto[,-length(Auto)]
+# help(lm)
+model <- lm(mpg ~ ., data=df)
+summary(model)
+```
+
+c.i) The model does predict a relationship between the predictors and response; R^2 at 0.903 is high, expressing that the model fits training data well. The F-statistic is high (considering the number of observations is much larger than our number of predictors) and p value is very low, thus the null-hypothesis can be rejected. 
+
+c.ii) Based on their low p values (highlighted by the 2-3 stars next to each p-value), displacement, weight, year and origin appear to have a statistically significant relationship to the response
+
+c.iii) With each passing year, mpg increases by ~0.75 mpg
+
+### d)
+
+```{r, fig.width=10, fig.height=10}
+par(mfrow=c(2,2)) 
+plot(model)
+par(mfrow=c(1,1)) # Change back to 1 x 1
+```
+The residuals vs fitted plot can be used to diagnose non-linear behavior in residuals. There appears to be a parabolic shape to the residuals curves, where non-linear relationship that was not explained by the model was left out in the residuals. 
+The Normal Q-Q plot shows if residuals are normally distributed; there is some deviation in the points that have gained labels: 326, 327 and 323
+The Scale-Location plot shows that the residuals are randomly spread and homoscedastic
+The residuals vs leverage plot shows that residual 14 has leverage, but all points are within cook's distance, meaning there aren't any particular residual that is highly influential to regression results
+
+### e)
+
+with some car knowledge that engine performance depends on an interaction of number of cylinders and total displacement, I believed it would be interesting to see whether this can influence our model: 
+
+```{r}
+model_interaction <- lm(mpg~cylinders*displacement, data=df)
+summary(model_interaction)
+```
+Cylinders, displacement as well as their interaction proved to be very statistically significant in predicting mpg, which makes sense from a mechanical standpoint; more cylinders should allow for a more stable engine and higher RPMs, coupled with greater displacement fuel use can increase very quickly
+
+Next I wondered whether there were strong interactions between year and origin, i.e. whether some countries of origin made great improvements overtime or vice veresa
+```{r}
+model_interaction <- lm(mpg~year*origin, data=df)
+summary(model_interaction)
+```
+However, here the significance is rather weak
+
+Finally, knowing that acceleration can have a very high penalty on fuel usage, and that horsepower is a function of RPM: 
+```{r}
+model_interaction <- lm(mpg~acceleration*horsepower, data=df)
+summary(model_interaction)
+```
+It turns out that a fast moving, high revving powerhouse consumes a ton of fuel: the interaction is statistically significacnt.
+
+### f) 
+```{r}
+model_transform <- lm(log(mpg)~cylinders+exp(displacement)+log(horsepower)+log(weight)+log(acceleration)+I(year^2)+origin, data=Auto)
+summary(model_transform)
+```
+Using a log transform of mpg proved a much better fit on its own; making additional transforms on predictor  vectors, especially exp() on displacement and log() on horsepower, weight and acceleration further improved adjusted R^2 and reduced RSE
+
+And now looking at the diagnostic plots: 
+```{r, fig.width=10, fig.height=10}
+par(mfrow=c(2,2)) 
+plot(model_transform)
+par(mfrow=c(1,1)) # Change back to 1 x 1
+```
+
+We see that with the aforementioned transforms on our response and predictor variables, the non-linear patterns on residuals greatly decreased (on the residuals vs fitted plot). 
+Deviation of residuals from the straight line on Normal Q-Q plot also decreased, signifying more normally distributed residuals
+
+\pagebreak
+
+## Problem 10
+Exercise 14 (p. 125)
+
+### a) 
+```{r}
+set.seed(1)
+x1 <- runif(100)
+x2 <- 0.5 * x1 + rnorm(100)/10
+y = 2 + 2*x1 + 0.3*x2 + rnorm(100)
+```
+
+Form of the model and regression coefficients
+
+
+![problem 10a](./10a)
+
+
+Per 3.36 in the book, the form has a quadratic shape but model is still linear
+
+### b)
+```{r}
+print(cor(x1, x2))
+model <- lm(x2~x1)
+plot(x1, x2)
+abline(model, col='blue')
+```
+
+### c) 
+```{r}
+model <- lm(y~x1+x2)
+coef(model)
+summary(model)
+```
+
+Only B0 is close to the true coefficients. B1 and B2 are nontriviallly divergent from true coefficient values, with large std. error. We can marginally reject the null hypothesis for B1 as its p-value is below 5%. However, the p-value for B2 is quite high, so we cannot reject the null hypothesis. 
+
+### d)
+```{r}
+model_x1only <- lm(y~x1)
+summary(model_x1only)
+```
+Std error is relatively low here as a ratio of the coefficient estimate compared to the multiple linear regression case in 10.c. P-value is very low, thus we can reject the null-hypothesis of B1=0.
+
+### e)
+```{r}
+model_x2only <- lm(y~x2)
+summary(model_x2only)
+```
+Again, std error is relatively low here as a ratio of the coefficient estimate compared to the multiple linear regression case in 10.c. P-value is very low, thus we can reject the null-hypothesis of B2=0.
+
+### f) 
+The results do not contradict each other. From 10.b, we can see that x1 and x2 have significant collinearity and increase together. In a regression problem, this can cause problems due to the difficulty of separating out the individual effects of collinear predictors on the response. 
+
+### g) 
+```{r}
+x1_new <- c(x1, 0.1)
+x2_new <- c(x2, 0.8)
+y_new <- c(y,6)
+
+print(cor(x1_new, x2_new))
+model = lm(x2_new~x1_new)
+plot(x1_new, x2_new)
+abline(model, col='blue')
+```
+
+```{r}
+model <- lm(y_new~x1_new+x2_new)
+summary(model)
+model_x1only <- lm(y_new~x1_new)
+summary(model_x1only)
+model_x2only <- lm(y_new~x2_new)
+summary(model_x2only)
+```
+
+By adding this point, the amount of response variability explained by the multiple linear regression model improves: adjusted R^2 went from 0.21 to 0.27.
+Here x1_new is no longer a statistically significant predictor. The p-value for x2_new shifts down and we can reject the null hypothesis that B2=0. 
+
+In the both cases of simple linear regression using only either x1_new or x2_new as predictor, the null hypothesis can be rejected based on p-value. 
+
+
+```{r}
+plot(model, which=5)
+```
+The new point, labeled 101, becomes a high leverage point in the first model using multiple linear regression with both x1 and x2 as predictors. 
+
+```{r}
+plot(model_x1only, which=5)
+```
+No high leverage points found
+
+```{r}
+plot(model_x2only, which=5)
+```
+
+Point 101 is also relatively high leverage in the x2 only model, but is still within Cook's distance. 
+
+```{r}
+plot(predict(model), rstudent(model))
+```
+
+No possible outliers in multiple linear regression model using both x1 and x2
+
+```{r}
+plot(predict(model_x1only), rstudent(model_x1only))
+```
+
+Possible outlier lying outside of +3 studentised residual in simple linear regression model using x1
+
+```{r}
+plot(predict(model_x2only), rstudent(model_x2only))
+```
+
+No outliers detected for simple linear regression model using x2

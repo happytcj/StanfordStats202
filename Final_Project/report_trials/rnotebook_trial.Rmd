@@ -1,0 +1,81 @@
+---
+title: "R Notebook"
+output:
+  pdf_document: default
+  html_notebook: default
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{python}
+import numpy as np
+import pandas as pd
+```
+
+Just trying this out; the report won't need to include code so automated report gegneration is not necessary
+
+```{python}
+df_train = pd.read_csv('/Users/tjiang/Desktop/Personal/Stats202/my_repo/Final_Project/data/training.csv', delimiter=',')
+df_test = pd.read_csv('/Users/tjiang/Desktop/Personal/Stats202/my_repo/Final_Project/data/test.csv', delimiter=',')
+```
+
+```{python}
+df_train.head()
+```
+
+```{python}
+df_test.head()
+```
+
+## Naïve Bayes
+
+```{python}
+from sklearn import datasets
+iris = datasets.load_iris()
+from sklearn.naive_bayes import GaussianNB
+gnb = GaussianNB()
+y_pred = gnb.fit(iris.data, iris.target).predict(iris.data)
+print("Number of mislabeled points out of a total %d points : %d" % (iris.data.shape[0],(iris.target != y_pred).sum()))
+```
+
+
+```{r}
+dat = read.csv("/Users/tjiang/Desktop/Personal/Stats202/my_repo/Final_Project/data/training.csv", header = TRUE)
+```
+```{r}
+summary(dat)
+dim(dat)
+```
+```{r}
+library(e1071)
+```
+
+```{r}
+clean = dat[,3:13]
+class(clean)
+summary(clean)
+```
+
+```{r}
+model <- naiveBayes(as.factor(relevance) ~ ., data = clean)
+table(predict(model, clean[,1:10]), clean[,11])
+```
+
+```{r}
+data(Titanic)
+m <- naiveBayes(Survived ~ ., data = Titanic)
+m
+predict(m, as.data.frame(Titanic)[,1:3])
+```
+
+```{r}
+data(iris)
+m <- naiveBayes(Species ~ ., data = iris)
+## alternatively:
+m <- naiveBayes(iris[,-5], iris[,5])
+m
+table(predict(m, iris[,-5]), iris[,5])
+```
+
