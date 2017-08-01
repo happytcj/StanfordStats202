@@ -20,22 +20,22 @@ library(randomForest)
 Chapter 6, Exercise 3 (p. 260). 
 
 ### a) 
-iv Steadily decrease. At s=0, all estimators are equal to zero and we have a null model. As s increases, the estimators approach their least square estimate values and the RSS decreases to what ordinary least squares would yield. 
+Steadily decrease. At s=0, all estimators are equal to zero and we have a null model. As s increases, the estimators approach their least square estimate values and the RSS decreases to what ordinary least squares would yield. 
 
 ### b)
-ii Decrease initially, then eventually start increasing. At s=0 and null model, test RSS will be high as the model has very high bias. As s increases there will be a point where the model fits the data well and test RSS decreases, before test RSS increases again due to overfitting and high variance
+Decrease initially, then eventually start increasing. At s=0 and null model, test RSS will be high as the model has very high bias. As s increases there will be a point where the model fits the data well and test RSS decreases, before test RSS increases again due to overfitting and high variance
 
 ### c) 
 
-iii. Steadily increase. At s=0, the model will output a constant value and there is very low variance. As s increases the model becomes more flexible and variance increases. 
+Steadily increase. At s=0, the model will output a constant value and there is very low variance. As s increases the model becomes more flexible and variance increases. 
 
 ### d)
 
-iv. Steadily decrease. As s increases the model becomes more flexible and squared bias will fall. 
+Steadily decrease. As s increases the model becomes more flexible and squared bias will fall. 
 
 ### e) 
 
-v. Remain constant. Irreducible error is independent of model coefficients and shrinknage methods. 
+Remain constant. Irreducible error is independent of model coefficients and shrinknage methods. 
 
 ## Problem 2
 
@@ -54,7 +54,7 @@ Steadily decreases; As lambda increases from 0 the model becomes simpler, less f
 Steadily increases; As lambda increases from 0 the model goes from having estimator values similar to an ordinary least squared model all the way to a null model. Along the way the model becomes underfit and bias increases. 
 
 ### e)
-v. Remain constant. Irreducible error is independent of model coefficients and shrinknage methods. 
+Remain constant. Irreducible error is independent of model coefficients and shrinknage methods. 
 
 ## Problem 3
 
