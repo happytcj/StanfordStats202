@@ -8,13 +8,80 @@ output:
 ## SUID ending in 0710
 tcjiang108@gmail.com
 
-```{r,include=FALSE}
+Load required libraries
 
+```{r,include=FALSE}
+library(ISLR)
+library(gbm)
+library(glmnet)
 ```
 
-Problem 1
-
+## Problem 1
 Chapter 8, Exercise 10 (p. 334). 
+
+### a)
+```{r}
+clean_Hitters <- Hitters[-which(is.na(Hitters$Salary)), ]
+clean_Hitters$Salary_tr <- log(clean_Hitters$Salary) 
+#drop the non-transformed salary vector
+clean_Hitters <- subset(clean_Hitters, select=-c(Salary))
+```
+
+### b)
+```{r}
+indices <- 1:200
+train_set <- clean_Hitters[indices, ]
+test_set <- clean_Hitters[-indices, ]
+```
+
+### c)
+```{r}
+set.seed(1)
+pows <- seq(-10, -0.2, by=0.1)
+lambdas <- 10^pows
+train_err <- rep(NA, length(lambdas))
+for (i in 1:length(lambdas)) {
+    boost_hitters <- gbm(Salary_tr~., data=train_set, distribution="gaussian", n.trees=1000, shrinkage=lambdas[i])
+    pred_train <- predict(boost_hitters, train_set, n.trees=1000)
+    train_err[i] <- mean((pred_train - train_set$Salary_tr)^2)
+}
+plot(lambdas, train_err, type = "b", xlab = "shrinkage", ylab = "train MSE")
+```
+
+### d)
+```{r}
+set.seed(1)
+test_err <- rep(NA, length(lambdas))
+for (i in 1:length(lambdas)) {
+    boost_hitters <- gbm(Salary_tr~., data=test_set, distribution="gaussian", n.trees=1000, shrinkage=lambdas[i])
+    pred_test <- predict(boost_hitters, test_set, n.trees=1000)
+    test_err[i] <- mean((pred_test - test_set$Salary_tr)^2)
+}
+plot(lambdas, test_err, type = "b", xlab = "shrinkage", ylab = "test MSE")
+```
+
+### e)
+```{r}
+fit_slr <- lm(Salary_tr~., data = train_set)
+pred <- predict(fit_slr, test_set)
+sprintf('test MSE from linear regression: %0.3f', mean((pred - test_set$Salary_tr)^2))
+```
+
+```{r}
+x_train <- model.matrix(Salary_tr~., data = train_set)
+x_test <- model.matrix(Salary_tr~., data = test_set)
+y <- train_set$Salary_tr
+fit <- glmnet(x_train, y, alpha = 0)
+pred <- predict(fit, s = 0.01, newx = x_test)
+sprintf('test MSE from regularized linear regression: %0.3f', mean((pred - test_set$Salary_tr)^2))
+```
+
+Boosting with shrinknage can dramatically outperform both linear regression and ridge regression in terms of test MSE
+
+### f)
+
+
+### g)
 
 
 Problem 2
